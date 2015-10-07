@@ -45,6 +45,8 @@ var KEY_B = 66;
 var KONAMI = "" + KEY_UP + KEY_UP + KEY_DOWN + KEY_DOWN + KEY_LEFT + KEY_RIGHT + KEY_LEFT + KEY_RIGHT + KEY_B + KEY_A;
 var isDoge;
 
+var MILLIS_PER_DAY = 1000 * 60 * 60 * 24
+
 /**
  * Gets GET variables from URL and sets them as properties of the urlParams object.
  * Then updates the state of the current history entry with the appropriate week.
@@ -972,4 +974,9 @@ function updateClock() {
  */
 function addLeadingZero(n) {
 	return (n<10) ? "0"+n : n;
+}
+
+function daysBetweenExceptWeekends(date1, date2) {
+	var diffMilli = date2.getTime() - date1.getTime();
+	return Math.floor(diffMilli / MILLIS_PER_DAY);
 }
