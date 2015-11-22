@@ -45,7 +45,11 @@ var KEY_B = 66;
 var KONAMI = "" + KEY_UP + KEY_UP + KEY_DOWN + KEY_DOWN + KEY_LEFT + KEY_RIGHT + KEY_LEFT + KEY_RIGHT + KEY_B + KEY_A;
 var isDoge;
 
-var MILLIS_PER_DAY = 1000 * 60 * 60 * 24
+var START_DATE = new Date('January 4, 2016'); //The start day of the pilot program should be a weekday
+var START_SCHEDULE = 1; //The schedule on the first day
+var TOTAL_SCHEDULES = 4; //The number of schedules to be cycled
+
+var MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
 
 /**
  * Gets GET variables from URL and sets them as properties of the urlParams object.
@@ -416,7 +420,7 @@ function getDayInfo(day) {
 	if(id === undefined) { //no special schedule found
 		id = day.getDay();
 		if(id==0 || id==6) index = id = 0; //no school on weekends
-		else index = id; //default schedule for that day
+		else index = calculateScheduleRotation(day); //default schedule for that day
 	}
 	
 	return { "index": index, "id": id, "dateString": dateString, "replacements": replacements };
@@ -431,6 +435,14 @@ function getScheduleIndex(id) {
 		if(id==schedules[i][0]) return i; //found specified schedule id
 	}
 	return 0; //couldn't find specified schedule
+}
+
+function calculateScheduleRotation(date) {
+	console.log(date);
+	var daysDifference = (date.getTime() - START_DATE.getTime()) / MILLIS_PER_DAY;
+	console.log(daysDifference);
+	daysDifference -= Math.floor(daysDifference / 7) * 2; //Factor out weekends
+	return START_SCHEDULE + Math.floor(daysDifference % TOTAL_SCHEDULES);
 }
 
 /**
