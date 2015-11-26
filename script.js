@@ -234,7 +234,7 @@ function setDisplayDate(time, force) {
 function getDateFromUrlParams() {
 	var date = new Date();
 	
-	if(urlParams["y"]>0) date.setFullYear(urlParams["y"]);
+	if(urlParams["y"]>0) date.setFullYear("20" + urlParams["y"]);
 	if(urlParams["m"]>0) date.setMonth(urlParams["m"]-1);
 	if(urlParams["d"]>0) date.setDate(urlParams["d"]);
 	
@@ -437,12 +437,35 @@ function getScheduleIndex(id) {
 	return 0; //couldn't find specified schedule
 }
 
+/**
+ * Determines which schedule should be displayed given the four block rotation.
+ * This futher factors out weekends and holidays when considering which day to 
+ * display. Relies on a known starting anchor day with a given schedule and 
+ * continues the cycle from there. 
+ */
 function calculateScheduleRotation(date) {
-	console.log(date);
 	var daysDifference = (date.getTime() - START_DATE.getTime()) / MILLIS_PER_DAY;
-	console.log(daysDifference);
-	daysDifference -= Math.floor(daysDifference / 7) * 2; //Factor out weekends
-	return START_SCHEDULE + Math.floor(daysDifference % TOTAL_SCHEDULES);
+	//Factor out weekends
+	daysDifference -= Math.floor(daysDifference / 7) * 2; 
+	//Factor out holidays
+	var dateExp = /\d{1,2}\/\d{1,2}\/\d{2}/ //Finds dates of the format M(M)/D(D)/YY
+	for (var i = 0; i < schedules[0].length; i++) {
+		var entry = schedules[0][i];
+		if (entry.search(dateExp) != -1) {
+			//Parse entry into date and id
+			var entryDate = new Date(entry.split("\t")[0]);
+			var entryId = entry.split("\t")[1];
+			//If the schedule is a holiday in the future, don't consider it in the count
+			if (getScheduleIndex(entryId) == 0 && date - entryDate > 0) {
+				daysDifference--;
+			}
+		}
+	}
+
+	if (daysDifference < 0) //Different formula needed for events before start day
+		return START_SCHEDULE + Math.floor(daysDifference % TOTAL_SCHEDULES) + TOTAL_SCHEDULES;
+	else
+		return START_SCHEDULE + Math.floor(daysDifference % TOTAL_SCHEDULES);
 }
 
 /**
@@ -883,7 +906,6 @@ function attachOptionActions() {
 				break;
 			}
 			inputStr += event.keyCode;
-			// console.log(inputStr);
 			if (inputStr.indexOf(KONAMI) != -1) {
 				isDoge = !isDoge;
 				setDoge(isDoge);
